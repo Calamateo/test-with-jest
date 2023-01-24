@@ -3,6 +3,7 @@ const request = require('supertest');
 const { MongoClient } = require('mongodb');
 const createApp = require('../src/app');
 const { config } = require('../src/config');
+const { generateManyBook } = require('../src/fakes/book.fake');
 
 const DB_NAME = config.dbName;
 const MONGO_URI = config.dbUrl;
@@ -23,8 +24,11 @@ describe('Test for books endpoint', () => {
   });
 
   afterAll(async () => {
-    await database.dropDatabase();
     await server.close();
+  });
+
+  afterEach(async () => {
+    await database.dropDatabase();
   });
 
   describe('Test for [GET] /api/v1/books', () => {
@@ -49,6 +53,22 @@ describe('Test for books endpoint', () => {
           console.log(body);
           console.log(body.length);
           expect(body.length).toEqual(seedData.insertedCount);
+        });
+    });
+  });
+
+  describe('Test for anyway', () => {
+    test('should ', async () => {
+      const seedData = await database.collection('books').insertMany(generateManyBook(7));
+      console.log(seedData);
+      console.log(seedData.insertedIds[2]);
+      return request(app)
+        .get('/api/v1/books')
+        .expect(200)
+        .then(({ body }) => {
+          console.log(body);
+          // eslint-disable-next-line no-underscore-dangle
+          expect(body[2]._id).toEqual(seedData.insertedIds[2]);
         });
     });
   });
